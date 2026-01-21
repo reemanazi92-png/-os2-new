@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>اختبار تفاعلي - أنظمة التشغيل</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Cairo', sans-serif;
+    margin: 0; padding: 0;
+    /* خلفية نظيفة */
+    background-color: #e0e4ff;
+    color: #1a1a1a;
+  }
+
+  .container {
+    max-width: 900px;
+    width: 95%;
+    margin: 50px auto;
+    background: #fff;
+    border-radius: 15px;
+    padding: 30px 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  }
+
+  h1, h2 {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 8px;
+    background-color: #4f46e5;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: 0.3s;
+  }
+  button:hover {
+    background-color: #6366f1;
+  }
+
+  .options {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  .option {
+    padding: 14px;
+    border-radius: 8px;
+    background-color: #f0f0f0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s;
+    font-size: 1rem;
+  }
+  .option:hover {
+    background-color: #dbeafe;
+  }
+  .option.correct { background-color: #d1fae5; }
+  .option.wrong { background-color: #fee2e2; }
+
+  .hidden { display: none; }
+
+  .result {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 20px; }
+    h1, h2 { font-size: 1.5rem; }
+    .option { font-size: 0.95rem; padding: 12px; }
+    button { padding: 12px; font-size: 0.95rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container" id="quiz-container">
+  <div id="start-screen">
+    <h1>اختبار تفاعلي - أنظمة التشغيل</h1>
+    <input type="text" id="student-name" placeholder="أدخل اسمك هنا">
+    <button onclick="startQuiz()">ابدأ الاختبار</button>
+  </div>
+
+  <div id="question-screen" class="hidden">
+    <h2 id="question-text"></h2>
+    <div class="options" id="options-container"></div>
+    <button id="next-btn" onclick="nextQuestion()" class="hidden">التالي</button>
+  </div>
+
+  <div id="result-screen" class="hidden">
+    <h1>النتيجة</h1>
+    <p id="score-text"></p>
+    <button onclick="restartQuiz()">إعادة الاختبار</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {question:"ما هو دور نظام التشغيل؟",
+   options:["إدارة الموارد وتوفير واجهة بين المستخدم والأجهزة","إنشاء التطبيقات فقط","تخزين الملفات فقط","تشغيل الإنترنت فقط"],
+   answer:"إدارة الموارد وتوفير واجهة بين المستخدم والأجهزة"},
+
+  {question:"متى بدأ مشروع لينكس؟",
+   options:["1985","1991","2000","2010"], answer:"1991"},
+
+  {question:"النواة (Kernel) مسؤولة عن:",
+   options:["تصميم واجهة المستخدم","إدارة العتاد وتشغيل البرامج","الاتصال بالإنترنت فقط","تخزين الملفات فقط"],
+   answer:"إدارة العتاد وتشغيل البرامج"},
+
+  {question:"ما المقصود بـ GNU/Linux؟",
+   options:["نظام تشغيل كامل مع النواة وأدوات جنو","النواة فقط","تطبيقات الويب","خادم قاعدة البيانات"],
+   answer:"نظام تشغيل كامل مع النواة وأدوات جنو"},
+
+  {question:"لينكس ينتمي إلى عائلة أنظمة:",
+   options:["Windows","Unix","MacOS","Android"], answer:"Unix"},
+
+  {question:"أي نظام تشغيل يُعتبر حر ومفتوح المصدر؟",
+   options:["Windows","MacOS","GNU/Linux","iOS"], answer:"GNU/Linux"},
+
+  {question:"أحد الأسباب التي تجعل لينكس منتشرًا:",
+   options:["كلفته العالية","حرية التعديل والتطوير","نقص الأمان","صعوبة الاستخدام"], answer:"حرية التعديل والتطوير"},
+
+  {question:"أحد التطبيقات التاريخية لـ GNU/Linux كان:",
+   options:["نظام تشغيل للخوادم","تطبيقات الجوال فقط","تصميم الرسوميات فقط","تحرير الفيديو فقط"],
+   answer:"نظام تشغيل للخوادم"},
+
+  {question:"أحد الخوادم المفتوحة المصدر هو:",
+   options:["Apache Tomcat","IIS","Oracle","Windows Server"], answer:"Apache Tomcat"},
+
+  {question:"Vim هو:",
+   options:["محرر نصوص","متصفح ويب","نظام تشغيل","خادم قاعدة بيانات"], answer:"محرر نصوص"},
+
+  {question:"Eclipse يستخدم في:",
+   options:["تطوير التطبيقات","إدارة الملفات","تصميم الألعاب فقط","إدارة البريد"], answer:"تطوير التطبيقات"},
+
+  {question:"Brackets يساعد المطور في:",
+   options:["معاينة صفحات الويب فور الكتابة","تشغيل الخادم","إدارة قاعدة البيانات","أمن النظام"], answer:"معاينة صفحات الويب فور الكتابة"},
+
+  {question:"Emacs هو:",
+   options:["بيئة تطوير متكاملة","خادم ويب","نظام تشغيل","متصفح"], answer:"بيئة تطوير متكاملة"},
+
+  {question:"Sublime Text يتميز بـ:",
+   options:["تعدد المنصات وأداء عالي","محرر صور","خادم قاعدة بيانات","متصفح"], answer:"تعدد المنصات وأداء عالي"},
+
+  {question:"Light Table:",
+   options:["محرر مجاني مع واجهة نظيفة","نظام تشغيل","خادم ويب","متصفح"], answer:"محرر مجاني مع واجهة نظيفة"},
+
+  {question:"Chocolat مناسب لـ:",
+   options:["كتابة أكواد تطبيقات Apple","إدارة الشبكات","تحرير الصور","تشغيل الفيديو"], answer:"كتابة أكواد تطبيقات Apple"},
+
+  {question:"البرمجيات الحرة توفر:",
+   options:["حرية المستخدم الكاملة","مقابل مادي فقط","محدودية الاستخدام","تحكم الشركات فقط"], answer:"حرية المستخدم الكاملة"},
+
+  {question:"البرمجيات مفتوحة المصدر تهدف إلى:",
+   options:["إتاحة الكود المصدري للتطوير","بيع البرامج","تقييد الاستخدام","إخفاء الكود"], answer:"إتاحة الكود المصدري للتطوير"},
+
+  {question:"أحد معايير اختيار نظام التشغيل:",
+   options:["الأمان","الشكل فقط","اللون","السرعة فقط"], answer:"الأمان"},
+
+  {question:"أكثر أنظمة التشغيل دعما من الشركات والألعاب:",
+   options:["Windows","macOS","GNU/Linux","Android"], answer:"Windows"}
+];
+
+let currentQuestion = 0;
+let score = 0;
+let studentName = "";
+
+function startQuiz() {
+  studentName = document.getElementById('student-name').value.trim();
+  if(studentName === "") { alert("الرجاء إدخال اسمك"); return; }
+  document.getElementById('start-screen').classList.add('hidden');
+  document.getElementById('question-screen').classList.remove('hidden');
+  showQuestion();
+}
+
+function showQuestion() {
+  const q = questions[currentQuestion];
+  document.getElementById('question-text').innerText = q.question;
+  const container = document.getElementById('options-container');
+  container.innerHTML = "";
+  q.options.forEach(opt => {
+    const btn = document.createElement('div');
+    btn.classList.add('option');
+    btn.innerText = opt;
+    btn.onclick = () => selectOption(btn, opt);
+    container.appendChild(btn);
+  });
+  document.getElementById('next-btn').classList.add('hidden');
+}
+
+function selectOption(button, option) {
+  const correct = questions[currentQuestion].answer;
+  if(option === correct) {
+    button.classList.add('correct');
+    score++;
+  } else {
+    button.classList.add('wrong');
+  }
+  const allOptions = document.querySelectorAll('.option');
+  allOptions.forEach(b => b.onclick = null);
+  document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function nextQuestion() {
+  currentQuestion++;
+  if(currentQuestion >= questions.length) {
+    showResult();
+  } else {
+    showQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('question-screen').classList.add('hidden');
+  const resultScreen = document.getElementById('result-screen');
+  document.getElementById('score-text').innerText = `${studentName}, لقد حصلت على ${score} من ${questions.length} (${((score/questions.length)*100).toFixed(0)}%)`;
+  resultScreen.classList.remove('hidden');
+}
+
+function restartQuiz() {
+  currentQuestion = 0;
+  score = 0;
+  studentName = "";
+  document.getElementById('student-name').value = "";
+  document.getElementById('result-screen').classList.add('hidden');
+  document.getElementById('start-screen').classList.remove('hidden');
+}
+</script>
+</body>
+</html>
